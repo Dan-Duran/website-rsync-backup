@@ -80,10 +80,10 @@ backup() {
     # Prepare exclude options
     local exclude_opts=""
     for item in "${EXCLUDE[@]}"; do
-        exclude_opts+="--exclude=$item "
+        exclude_opts+="--exclude='$item' "
     done
     
-    if rsync -avz --delete $exclude_opts "$SRC" "$DEST"; then
+    if rsync -avz --delete $exclude_opts --exclude='/*/' "$SRC" "$DEST"; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
