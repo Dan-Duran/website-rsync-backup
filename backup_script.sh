@@ -12,10 +12,10 @@ EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to noti
 # Files or directories to exclude
 EXCLUDE=(
     "cache"                         # Exclude a directory named 'cache' anywhere in the backup
-    "*.log"                         # Exclude all files with .log extension
+    "**.log"                         # Exclude all files with .log extension
     "/var/www/html/mycustom/exclude"  # Exclude a specific directory
     "tmp"                           # Exclude a directory named 'tmp' anywhere in the backup
-    "*.tmp"                         # Exclude all files with .tmp extension
+    "**.tmp"                         # Exclude all files with .tmp extension
     "/var/www/html/specific-file.txt"  # Exclude a specific file
     "node_modules"                  # Exclude all 'node_modules' directories
 )
@@ -83,7 +83,10 @@ backup() {
         exclude_opts+="--exclude='$item' "
     done
     
-    if rsync -avz --delete $exclude_opts --exclude='/*/' "$SRC" "$DEST"; then
+    if rsync -avz --delete $exclude_opts \
+        --prune-empty-dirs \
+        --include='*/' \
+        "$SRC" "$DEST"; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
