@@ -81,12 +81,12 @@ is_failure="$1"
 SITE="$2"
 
 if [ "$is_failure" = "true" ]; then
-    subject="Backup for $SITE failed"
+    subject="Backup for $SITE FAILED"
     body="The backup process for $SITE failed. Please check the log file for details."
     priority="high"
 else
     subject="Backup for $SITE successful"
-    body="The backup process for $SITE has completed successfully. Please check the log file for details."
+    body="The backup process for $SITE has completed successfully."
     priority="normal"
 fi
 
