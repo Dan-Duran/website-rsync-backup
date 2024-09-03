@@ -19,6 +19,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 - Root privilege check
 - Configurable email notifications for backup successes and failures via SMTP or Postmark
 - Option to completely disable email notifications
+- Option to back up from a remote source over SSH
 
 ## Prerequisites
 
@@ -28,6 +29,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 - Root access (sudo)
 - mutt (only if using SMTP for email notifications)
 - curl (for Postmark API calls)
+- sshpass (only if using password-based SSH authentication for remote backups)
 
 ## Installation
 
@@ -47,6 +49,10 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    ```
    sudo apt-get install mutt
    ```
+5. (Optional) Install sshpass for password-based SSH authentication:
+   ```
+   sudo apt-get install sshpass
+   ```
 
 ## Configuration
 
@@ -62,6 +68,11 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
    - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
    - `REQUIRED_DISK_SPACE`: Required disk space for checking in KB (default: 1GB)
+   - `BACKUP_FROM_REMOTE_SITE`: Set to true to enable remote backups, or false for local backups
+   - `REMOTE_IP, REMOTE_PORT, REMOTE_USER, REMOTE_PATH`: Details for remote backup (only needed if BACKUP_FROM_REMOTE_SITE is set to true)
+   - `SSH_METHOD`: Set to "key" for key-based SSH authentication or "password" for password-based authentication
+   - `SSH_KEY`: Path to your SSH private key (only required if SSH_METHOD is set to "key")
+   - `REMOTE_PASSWORD`: SSH password (only required if SSH_METHOD is set to "password")
 
 2. Configure exclusions in the `EXCLUDE` array:
    ```bash
