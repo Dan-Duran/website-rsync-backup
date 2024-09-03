@@ -1,21 +1,12 @@
 #!/bin/bash
 
-# Configuration
-EMAIL_METHOD="smtp" # Set to "smtp" or "postmark"
-
-# SMTP Configuration
-SMTP_SERVER="smtp.example.com"
-SMTP_PORT="587"
-SMTP_USER="your_email@example.com"
-SMTP_PASS="your_email_password"
-
-# Postmark Configuration
-POSTMARK_TOKEN="your-postmark-token-here"
-POSTMARK_API_URL="https://api.postmarkapp.com/email"
-
-# Common Configuration
-FROM_EMAIL="your_email@example.com"
-TO_EMAIL="admin@example.com"
+# Load environment variables from .env file
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+else
+    echo ".env file not found. Please create a .env file with the necessary configuration."
+    exit 1
+fi
 
 # Function to send email via SMTP
 send_email_smtp() {
