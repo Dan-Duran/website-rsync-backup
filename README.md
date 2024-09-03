@@ -12,7 +12,7 @@ This repository contains an enhanced Bash script for automating website backups 
 - Comprehensive error handling and logging
 - Disk space check before backup
 - Root privilege check
-- Configurable email notifications for backup successes and failures
+- Configurable email notifications for backup successes and failures via SMTP or Postmark
 - Option to completely disable email notifications
 
 ## Prerequisites
@@ -21,7 +21,8 @@ This repository contains an enhanced Bash script for automating website backups 
 - rsync
 - cron (for scheduling)
 - Root access (sudo)
-- mutt (for sending emails, if notifications are enabled)
+- mutt (only if using SMTP for email notifications)
+- curl (for Postmark API calls)
 
 ## Installation
 
@@ -37,7 +38,7 @@ This repository contains an enhanced Bash script for automating website backups 
    ```
    chmod +x backup_script.sh send_notification.sh
    ```
-4. Install mutt if not already installed (only needed if email notifications are enabled):
+4. Install mutt for notifications (ONLY if using SMTP):
    ```
    sudo apt-get install mutt
    ```
@@ -49,18 +50,12 @@ This repository contains an enhanced Bash script for automating website backups 
    - `DEST_BASE`: The base directory where backups will be stored
    - `LOG_FILE`: Path to the log file
    - `RETENTION_DAILY`, `RETENTION_WEEKLY`, `RETENTION_MONTHLY`: Retention periods for each backup type
-   - `EMAIL_SCRIPT`: Path to the send_notification.sh script
+   - `EMAIL_SCRIPT`: Path to the send_notification.sh script (should be "./send_notification.sh" if in the same directory)
    - `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to disable them completely
    - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
    - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
 
-2. If email notifications are enabled, edit the `send_notification.sh` file to configure email settings:
-   - `SMTP_SERVER`: Your SMTP server address
-   - `SMTP_PORT`: Your SMTP server port
-   - `SMTP_USER`: Your email username
-   - `SMTP_PASS`: Your email password
-   - `FROM_EMAIL`: The email address to send notifications from
-   - `TO_EMAIL`: The email address to send notifications to
+2. If email notifications are enabled, edit the `send_notification.sh` file to configure email settings.
 
 ## Usage
 
@@ -82,18 +77,54 @@ The script logs its operations to both the console and a log file (default: `/va
 
 ## Email Notifications
 
-The script includes an email notification system that can be configured or completely disabled based on your preferences:
+The script includes an email notification system that can be configured to use either SMTP or Postmark for sending emails, or can be completely disabled.
 
-- `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to completely disable them.
-- `NOTIFY_ON_FAILURE`: Set to `true` to receive emails for backup failures.
-- `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails for successful backups.
-
-You can configure these settings at the top of the `backup_script.sh` file:
+### Configuration in `backup_script.sh`:
 
 ```bash
 ENABLE_NOTIFICATIONS=true
 NOTIFY_ON_FAILURE=true
 NOTIFY_ON_SUCCESS=true
+```
+
+### Configuration in `send_notification.sh`:
+
+1. Choose the email method by setting `EMAIL_METHOD` to either "smtp" or "postmark".
+
+2. Configure the chosen method:
+
+   For SMTP:
+   - `SMTP_SERVER`: Your SMTP server address
+   - `SMTP_PORT`: Your SMTP server port
+   - `SMTP_USER`: Your email username
+   - `SMTP_PASS`: Your email password
+
+   For Postmark (you need to have a postmark account):
+   - `POSTMARK_TOKEN`: Your Postmark API token
+   - `POSTMARK_API_URL`: The Postmark API URL (usually "https://api.postmarkapp.com/email")
+
+3. Set the common email configuration:
+   - `FROM_EMAIL`: The email address to send notifications from
+   - `TO_EMAIL`: The email address to send notifications to
+
+Example configuration in `send_notification.sh`:
+
+```bash
+EMAIL_METHOD="postmark"
+
+# SMTP Configuration (if using SMTP)
+SMTP_SERVER="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER="your_email@example.com"
+SMTP_PASS="your_email_password"
+
+# Postmark Configuration (if using Postmark)
+POSTMARK_TOKEN="your-postmark-token-here"
+POSTMARK_API_URL="https://api.postmarkapp.com/email"
+
+# Common Configuration
+FROM_EMAIL="your_email@example.com"
+TO_EMAIL="admin@example.com"
 ```
 
 When notifications are enabled:
@@ -107,7 +138,7 @@ When notifications are enabled:
 
 All notification emails include the backup log file as an attachment for detailed information.
 
-If `ENABLE_NOTIFICATIONS` is set to `false`, no email notifications will be sent, and the notification script will not be executed. The backup process will continue to run normally and log its activities, but no emails will be sent regardless of the `NOTIFY_ON_FAILURE` and `NOTIFY_ON_SUCCESS` settings.
+If `ENABLE_NOTIFICATIONS` is set to `false` in `backup_script.sh`, no email notifications will be sent, and the notification script will not be executed. The backup process will continue to run normally and log its activities, but no emails will be sent regardless of other settings.
 
 ## Directory Structure
 
@@ -144,4 +175,4 @@ Contributions, issues, and feature requests are welcome. Feel free to check the 
 
 ## Author
 
-Dan Duran - [GitHub Profile](https://github.com/Dan-Duran)
+Dan Duran @ GetCyber! - [GitHub Profile](https://github.com/Dan-Duran)
