@@ -2,7 +2,7 @@
 
 This repository contains an enhanced Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently, and includes configurable email notifications for backup successes and failures.
 
-## HELP!
+## HELP! (CONTRIBUTIONS)
 
 Feel free to contribute to this repo! All adjustments and comments are welcomed. Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
 
@@ -61,6 +61,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    - `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to disable them completely
    - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
    - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
+   - `REQUIRED_DISK_SPACE`: Required disk space for checking in KB (default: 1GB)
 
 2. Configure exclusions in the `EXCLUDE` array:
    ```bash
