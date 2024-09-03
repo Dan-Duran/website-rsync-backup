@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if notifications are enabled
+if [ "$ENABLE_NOTIFICATIONS" != "true" ]; then
+    echo "Notifications are disabled in the settings. We won't run the send_notification script."
+    exit 0
+fi
+
 # Function to send email via SMTP
 send_email_smtp() {
     local subject="$1"
