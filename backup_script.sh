@@ -9,7 +9,8 @@ RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/send_notification.sh"
 
-# Email notification settings
+# Notification settings
+ENABLE_NOTIFICATIONS=true  # Set to false to completely disable notifications
 NOTIFY_ON_FAILURE=true
 NOTIFY_ON_SUCCESS=true
 
@@ -26,17 +27,21 @@ log() {
 
 # Function to send email notification
 send_notification() {
-    local subject="$1"
-    local body="$2"
-    local is_failure="$3"
+    if [ "$ENABLE_NOTIFICATIONS" = true ]; then
+        local subject="$1"
+        local body="$2"
+        local is_failure="$3"
 
-    if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
-       ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
-        if [ -x "$EMAIL_SCRIPT" ]; then
-            "$EMAIL_SCRIPT" "$subject" "$body" "$is_failure" "$LOG_FILE"
-        else
-            log "WARNING: Email script not found or not executable"
+        if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
+           ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
+            if [ -x "$EMAIL_SCRIPT" ]; then
+                "$EMAIL_SCRIPT" "$subject" "$body" "$is_failure" "$LOG_FILE"
+            else
+                log "WARNING: Email script not found or not executable"
+            fi
         fi
+    else
+        log "Notifications are disabled. Skipping email notification."
     fi
 }
 
