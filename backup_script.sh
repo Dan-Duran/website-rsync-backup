@@ -9,7 +9,16 @@ RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
-EXCLUDE=("cache" "tmp" "*.log") # Add your own files or directories to exclude
+# Files or directories to exclude
+EXCLUDE=(
+    "cache"                         # Exclude a directory named 'cache' anywhere in the backup
+    "*.log"                         # Exclude all files with .log extension
+    "/var/www/html/mycustom/exclude"  # Exclude a specific directory
+    "tmp"                           # Exclude a directory named 'tmp' anywhere in the backup
+    "*.tmp"                         # Exclude all files with .tmp extension
+    "/var/www/html/specific-file.txt"  # Exclude a specific file
+    "node_modules"                  # Exclude all 'node_modules' directories
+)
 
 # Notification settings
 ENABLE_NOTIFICATIONS=false  # Set to true to send notifications
