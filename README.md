@@ -13,6 +13,7 @@ This repository contains an enhanced Bash script for automating website backups 
 - Disk space check before backup
 - Root privilege check
 - Configurable email notifications for backup successes and failures
+- Option to completely disable email notifications
 
 ## Prerequisites
 
@@ -20,7 +21,7 @@ This repository contains an enhanced Bash script for automating website backups 
 - rsync
 - cron (for scheduling)
 - Root access (sudo)
-- mutt (for sending emails)
+- mutt (for sending emails, if notifications are enabled)
 
 ## Installation
 
@@ -36,7 +37,7 @@ This repository contains an enhanced Bash script for automating website backups 
    ```
    chmod +x backup_script.sh send_notification.sh
    ```
-4. Install mutt if not already installed:
+4. Install mutt if not already installed (only needed if email notifications are enabled):
    ```
    sudo apt-get install mutt
    ```
@@ -49,10 +50,11 @@ This repository contains an enhanced Bash script for automating website backups 
    - `LOG_FILE`: Path to the log file
    - `RETENTION_DAILY`, `RETENTION_WEEKLY`, `RETENTION_MONTHLY`: Retention periods for each backup type
    - `EMAIL_SCRIPT`: Path to the send_notification.sh script
-   - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures
-   - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups
+   - `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to disable them completely
+   - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
+   - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
 
-2. Edit the `send_notification.sh` file to configure email settings:
+2. If email notifications are enabled, edit the `send_notification.sh` file to configure email settings:
    - `SMTP_SERVER`: Your SMTP server address
    - `SMTP_PORT`: Your SMTP server port
    - `SMTP_USER`: Your email username
@@ -80,20 +82,32 @@ The script logs its operations to both the console and a log file (default: `/va
 
 ## Email Notifications
 
-The script can send email notifications based on the configuration:
+The script includes an email notification system that can be configured or completely disabled based on your preferences:
 
-- If `NOTIFY_ON_FAILURE` is set to `true`, emails will be sent in the following failure scenarios:
+- `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to completely disable them.
+- `NOTIFY_ON_FAILURE`: Set to `true` to receive emails for backup failures.
+- `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails for successful backups.
+
+You can configure these settings at the top of the `backup_script.sh` file:
+
+```bash
+ENABLE_NOTIFICATIONS=true
+NOTIFY_ON_FAILURE=true
+NOTIFY_ON_SUCCESS=true
+```
+
+When notifications are enabled:
+
+- Failure notifications (high priority) are sent for:
   - Insufficient disk space before starting the backup
-  - Failure during the backup process
-  - Failure during the rotation process
-  - These emails will be sent with high priority.
+  - Failures during the backup process
+  - Failures during the rotation process
 
-- If `NOTIFY_ON_SUCCESS` is set to `true`, an email will be sent when the backup completes successfully.
-  - These emails will be sent with normal priority.
+- Success notifications (normal priority) are sent when the backup completes successfully.
 
-All notification emails will include the backup log file as an attachment for detailed information.
+All notification emails include the backup log file as an attachment for detailed information.
 
-You can configure these settings at the top of the `backup_script.sh` file.
+If `ENABLE_NOTIFICATIONS` is set to `false`, no email notifications will be sent, and the notification script will not be executed. The backup process will continue to run normally and log its activities, but no emails will be sent regardless of the `NOTIFY_ON_FAILURE` and `NOTIFY_ON_SUCCESS` settings.
 
 ## Directory Structure
 
