@@ -9,15 +9,16 @@ RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
+
 # Files or directories to exclude
 EXCLUDE=(
     "cache"                         # Exclude a directory named 'cache' anywhere in the backup
-    "**.log"                         # Exclude all files with .log extension
-    "/var/www/html/mycustom/exclude"  # Exclude a specific directory
+    "**.log"                        # Exclude all files with .log extension in any directory
+    "mycustom/exclude"              # Exclude a specific directory
     "tmp"                           # Exclude a directory named 'tmp' anywhere in the backup
-    "**.tmp"                         # Exclude all files with .tmp extension
-    "/var/www/html/specific-file.txt"  # Exclude a specific file
-    "node_modules"                  # Exclude all 'node_modules' directories
+    "**.tmp"                        # Exclude all files with .tmp extension in any directory
+    "specific-file.txt"             # Exclude a specific file
+    "node_modules"                  # Exclude 'node_modules' directories anywhere in the backup
 )
 
 # Notification settings
@@ -80,13 +81,10 @@ backup() {
     # Prepare exclude options
     local exclude_opts=""
     for item in "${EXCLUDE[@]}"; do
-        exclude_opts+="--exclude='$item' "
+        exclude_opts+="--exclude=$item "
     done
     
-    if rsync -avz --delete $exclude_opts \
-        --prune-empty-dirs \
-        --include='*/' \
-        "$SRC" "$DEST"; then
+    if rsync -avz --delete $exclude_opts "$SRC" "$DEST"; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
