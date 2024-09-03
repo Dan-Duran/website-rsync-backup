@@ -7,7 +7,7 @@ LOG_FILE="/var/log/mysite-backup.log"
 RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
-EMAIL_SCRIPT="./send_notification.sh"
+EMAIL_SCRIPT="/home/admin/mysite-backups/send_notification.sh"
 
 # Notification settings
 ENABLE_NOTIFICATIONS=true  # Set to false to completely disable notifications
