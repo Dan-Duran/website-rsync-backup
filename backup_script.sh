@@ -9,6 +9,7 @@ RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
+REQUIRED_DISK_SPACE=1048576 # Required disk space in KB (default: 1GB)
 
 # Files or directories to exclude
 EXCLUDE=(
@@ -113,7 +114,7 @@ DATE=$(date +%Y-%m-%d)
 log "Starting backup process for $SITE"
 
 # Check disk space (assuming 1GB required, adjust as needed)
-check_disk_space 1048576
+check_disk_space "$REQUIRED_DISK_SPACE"
 
 # Perform daily backup
 backup "$DEST_BASE/daily" "Daily"
