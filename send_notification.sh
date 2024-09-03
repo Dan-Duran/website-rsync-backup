@@ -1,15 +1,5 @@
 #!/bin/bash
 
-# Load environment variables from .env file
-if [ -f .env ]; then
-    set -a
-    source .env
-    set +a
-else
-    echo ".env file not found. Please create a .env file with the necessary configuration."
-    exit 1
-fi
-
 # Function to send email via SMTP
 send_email_smtp() {
     local subject="$1"
