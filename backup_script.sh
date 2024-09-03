@@ -9,6 +9,7 @@ RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
+EXCLUDE=("cache" "tmp" "*.log") # Add your own files or directories to exclude
 
 # Notification settings
 ENABLE_NOTIFICATIONS=false  # Set to true to send notifications
@@ -66,7 +67,14 @@ backup() {
     local TYPE="$2"
     mkdir -p "$DEST"
     log "Starting $TYPE backup to $DEST"
-    if rsync -avz --delete "$SRC" "$DEST"; then
+    
+    # Prepare exclude options
+    local exclude_opts=""
+    for item in "${EXCLUDE[@]}"; do
+        exclude_opts+="--exclude=$item "
+    done
+    
+    if rsync -avz --delete $exclude_opts "$SRC" "$DEST"; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
