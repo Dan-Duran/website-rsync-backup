@@ -1,42 +1,15 @@
 #!/bin/bash
 
 # Load environment variables from .env file
-if [ -f .env ]; then
+ENV_FILE="/home/dan/website-rsync-backup/.env" # must be absolute path
+if [ -f "$ENV_FILE" ]; then
     set -a
-    source .env
+    source "$ENV_FILE"
     set +a
 else
-    echo ".env file not found. Please create a .env file with the necessary configuration."
+    echo ".env file not found at $ENV_FILE. Please create a .env file with the necessary configuration."
     exit 1
 fi
-
-# Configuration
-SITE="My Site"
-SRC="/var/www/html/" # path to source (local)
-DEST_BASE="/home/admin/website-rsync-backup/backups" # path to destination
-RETENTION_DAILY=90
-RETENTION_WEEKLY=52
-RETENTION_MONTHLY=24
-REQUIRED_DISK_SPACE=1048576 # Required disk space in KB (default: 1GB)
-
-# Remote backup configuration
-BACKUP_FROM_REMOTE_SITE=false  # Set to true for remote backup
-
-# Files or directories to exclude
-EXCLUDE=(
-    "cache"                         # Exclude a directory named 'cache' anywhere in the backup
-    "**.log"                        # Exclude all files with .log extension in any directory
-    "mycustom/exclude"              # Exclude a specific directory
-    "tmp"                           # Exclude a directory named 'tmp' anywhere in the backup
-    "**.tmp"                        # Exclude all files with .tmp extension in any directory
-    "specific-file.txt"             # Exclude a specific file
-    "node_modules"                  # Exclude 'node_modules' directories anywhere in the backup
-)
-
-# Notification settings
-ENABLE_NOTIFICATIONS=false  # Set to true to send notifications
-NOTIFY_ON_FAILURE=true
-NOTIFY_ON_SUCCESS=true
 
 # Ensure the script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -51,8 +24,8 @@ log() {
 
 # Function to send email notification
 send_notification() {
+    local is_failure="$1"
     if [ "$ENABLE_NOTIFICATIONS" = true ]; then
-        local is_failure="$1"
         if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
            ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
             if [ -x "$EMAIL_SCRIPT" ]; then
@@ -105,7 +78,7 @@ backup() {
     
     # Prepare exclude options
     local exclude_opts=""
-    for item in "${EXCLUDE[@]}"; do
+    for item in $EXCLUDE; do
         exclude_opts+="--exclude=$item "
     done
 
@@ -166,6 +139,7 @@ send_notification false
 
 # Directory structure:
 # website-rsync-backup/
+#   - .env
 #   - backup_script.sh
 #   - send_notification.sh
 #   - backups/
