@@ -1,15 +1,38 @@
 #!/bin/bash
 
-# Load environment variables from .env file
-ENV_FILE="/home/dan/website-rsync-backup/.env" # must be absolute path
+# Load general settings from settings.sh file
+SETTINGS_FILE="./settings.sh"
+if [ -f "$SETTINGS_FILE" ]; then
+    source "$SETTINGS_FILE"
+else
+    echo "settings.sh file not found in the current directory. Please ensure settings.sh is in the same directory as this script."
+    exit 1
+fi
+
+# Now that we have BASE_DIR, we can use it to locate the .env file
+ENV_FILE="$BASE_DIR/.env"
 if [ -f "$ENV_FILE" ]; then
     set -a
     source "$ENV_FILE"
     set +a
 else
-    echo ".env file not found at $ENV_FILE. Please create a .env file with the necessary configuration."
+    echo ".env file not found at $ENV_FILE. Please create a .env file with the necessary sensitive information."
     exit 1
 fi
+
+# Validate that all required variables are set
+required_vars=(
+    "BASE_DIR" "REMOTE_IP" "REMOTE_PORT" "REMOTE_USER" "SSH_KEY" "REMOTE_PATH"
+    "SITE" "DEST_BASE" "RETENTION_DAILY" "RETENTION_WEEKLY" "RETENTION_MONTHLY"
+    "REQUIRED_DISK_SPACE" "EXCLUDE"
+)
+
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: Required variable $var is not set. Please check your .env and settings.sh files."
+        exit 1
+    fi
+done
 
 # Ensure the script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -56,17 +79,48 @@ check_disk_space() {
     fi
 }
 
-# Function to construct the rsync command based on local or remote source
+# Function to prepare and diagnose the rsync command
 prepare_rsync_command() {
+    log "Preparing rsync command..."
+
+    # Prepare exclude options
+    local exclude_opts=""
+    for item in "${EXCLUDE[@]}"; do
+        exclude_opts+="--exclude=$item "
+    done
+
     if [ "$BACKUP_FROM_REMOTE_SITE" = true ]; then
         if [ "$SSH_METHOD" = "key" ]; then
-            RSYNC_CMD="rsync -avz -e 'ssh -i $SSH_KEY -p $REMOTE_PORT' $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+            RSYNC_CMD="rsync -avz $exclude_opts --delete -e \"ssh -i $SSH_KEY -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
         else
-            RSYNC_CMD="rsync -avz -e 'sshpass -p $REMOTE_PASSWORD ssh -p $REMOTE_PORT' $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+            RSYNC_CMD="sshpass -p \"$REMOTE_PASSWORD\" rsync -avz $exclude_opts --delete -e \"ssh -o StrictHostKeyChecking=no -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
         fi
+
+        # Test SSH connection
+        log "Testing SSH connection to $REMOTE_USER@$REMOTE_IP..."
+        if ! ssh -i "$SSH_KEY" -p "$REMOTE_PORT" -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "echo SSH connection successful"; then
+            log "ERROR: SSH connection test failed. Please check the SSH credentials and connection."
+            send_notification true
+            exit 1
+        else
+            log "SSH connection successful."
+        fi
+
+        # Test remote directory access
+        log "Testing access to remote directory $REMOTE_PATH..."
+        if ! ssh -i "$SSH_KEY" -p "$REMOTE_PORT" -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "ls $REMOTE_PATH" > /dev/null 2>&1; then
+            log "ERROR: Cannot access remote directory $REMOTE_PATH. Check if the directory exists and permissions are correct."
+            send_notification true
+            exit 1
+        else
+            log "Access to remote directory $REMOTE_PATH confirmed."
+        fi
+
     else
-        RSYNC_CMD="rsync -avz --delete $exclude_opts $SRC $DEST"
+        RSYNC_CMD="rsync -avz $exclude_opts --delete $SRC $DEST"
     fi
+
+    log "Rsync command prepared: $RSYNC_CMD"
 }
 
 # Backup function
@@ -75,19 +129,27 @@ backup() {
     local TYPE="$2"
     mkdir -p "$DEST"
     log "Starting $TYPE backup to $DEST"
-    
-    # Prepare exclude options
-    local exclude_opts=""
-    for item in $EXCLUDE; do
-        exclude_opts+="--exclude=$item "
-    done
 
     prepare_rsync_command  # Construct the rsync command
+
+    log "Running command: $RSYNC_CMD"
     
-    if $RSYNC_CMD; then
+    if eval $RSYNC_CMD > /tmp/rsync_output.log 2>&1; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
+        log "Rsync output:"
+        cat /tmp/rsync_output.log >> "$LOG_FILE"
+
+        # Check for common issues in the output and provide a detailed message
+        if grep -q "Permission denied" /tmp/rsync_output.log; then
+            log "ERROR: Permission denied. The user '$REMOTE_USER' may not have access to '$REMOTE_PATH' on the remote server."
+        elif grep -q "No such file or directory" /tmp/rsync_output.log; then
+            log "ERROR: The specified directory '$REMOTE_PATH' does not exist on the remote server."
+        else
+            log "ERROR: Rsync failed due to an unspecified issue. Please check the full log for more details."
+        fi
+
         send_notification true
         exit 1
     fi
@@ -133,19 +195,3 @@ fi
 
 log "Backup process completed for $SITE"
 send_notification false
-
-# Usage with cron:
-# 0 2 * * * /home/dan/website-rsync-backup/backup_script.sh
-
-# Directory structure:
-# website-rsync-backup/
-#   - .env
-#   - backup_script.sh
-#   - send_notification.sh
-#   - backups/
-#     - daily/
-#     - weekly/
-#     - monthly/
-
-# Make script executable:
-# chmod +x backup_script.sh
