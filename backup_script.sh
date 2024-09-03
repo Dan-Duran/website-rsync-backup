@@ -29,13 +29,11 @@ log() {
 # Function to send email notification
 send_notification() {
     if [ "$ENABLE_NOTIFICATIONS" = true ]; then
-        local subject="$1"
-        local body="$2"
-        local is_failure="$3"
+        local is_failure="$1"
         if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
            ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
             if [ -x "$EMAIL_SCRIPT" ]; then
-                "$EMAIL_SCRIPT" "$subject" "$body" "$is_failure"
+                "$EMAIL_SCRIPT" "$is_failure" "$SITE"
             else
                 log "WARNING: Email script not found or not executable"
             fi
@@ -52,12 +50,12 @@ check_disk_space() {
     local available_space=$(df -k "$DEST_BASE" | awk 'NR==2 {print $4}')
     if [ -z "$available_space" ]; then
         log "ERROR: Unable to determine available disk space"
-        send_notification "Backup Failed: Disk Space Check Error" "Unable to determine available disk space for $SITE. Please check the server." true
+        send_notification true
         exit 1
     fi
     if [ "$available_space" -lt "$required_space" ]; then
         log "ERROR: Not enough disk space. Required: ${required_space}KB, Available: ${available_space}KB"
-        send_notification "Backup Failed: Insufficient Disk Space" "Backup process for $SITE failed due to insufficient disk space. Please check the server." true
+        send_notification true
         exit 1
     fi
 }
@@ -72,7 +70,7 @@ backup() {
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
-        send_notification "Backup Failed: $TYPE Backup Error" "The $TYPE backup process for $SITE failed. Please check the server and the log file for more details." true
+        send_notification true
         exit 1
     fi
 }
@@ -88,7 +86,7 @@ rotate() {
         log "$TYPE backup rotation completed"
     else
         log "WARNING: $TYPE backup rotation failed"
-        send_notification "Backup Warning: $TYPE Rotation Failed" "The rotation process for $TYPE backups of $SITE failed. Please check the server and the log file for more details." true
+        send_notification true
     fi
 }
 
@@ -116,8 +114,7 @@ if [ "$(date +%d)" -eq 01 ]; then
 fi
 
 log "Backup process completed for $SITE"
-SITE_PATH=$(echo "$SRC" | sed 's/\/var\/www\///')
-send_notification "Backup Completed Successfully" "The backup process for $SITE ($SITE_PATH) has completed successfully. Please check the log file for details." false
+send_notification false
 
 # Usage with cron:
 # 0 2 * * * /home/dan/website-rsync-backup/backup_script.sh
