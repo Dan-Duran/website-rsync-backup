@@ -56,25 +56,65 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 
 ## Configuration
 
-1. Edit the `backup_script.sh` file to set your backup configuration:
+1. **Create and Configure `.env` File**:
+   Sensitive configurations, including email settings, logging paths, and remote SSH credentials, should be stored in a `.env` file in the same directory as your scripts. Here’s an example of what your `.env` file might look like:
+
+   ```plaintext
+   # .env
+
+   # For remote backup configuration
+   REMOTE_IP=192.168.1.100
+   REMOTE_PORT=22
+   REMOTE_USER=username
+   REMOTE_PATH=/var/www/html/
+   SSH_METHOD=key
+   SSH_KEY=/path/to/private/key
+   REMOTE_PASSWORD=password
+
+   # Log file
+   LOG_FILE=/var/log/mysite-backup.log
+
+   # Email script path
+   EMAIL_SCRIPT=/path/to/website-rsync-backup/send_notification.sh
+
+   # Email Method
+   EMAIL_METHOD=smtp # Set to "smtp" or "postmark"
+
+   # SMTP Configuration
+   SMTP_SERVER=smtp.example.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@example.com
+   SMTP_PASS=your_email_password
+
+   # Postmark Configuration
+   POSTMARK_TOKEN=your-postmark-token-here
+   POSTMARK_API_URL=https://api.postmarkapp.com/email
+
+   # Common Configuration
+   FROM_EMAIL=your_email@example.com
+   TO_EMAIL=admin@example.com
+   ```
+
+   Ensure the `.env` file is secure:
+   ```bash
+   chmod 600 .env
+   ```
+
+2. **Edit the `backup_script.sh` File**:
+   Most of the configurations for the backup process are handled in the script itself. You need to adjust the following in the `backup_script.sh`:
+
    - `SITE`: Name of your site (used in notifications)
-   - `SRC`: The directory you want to backup
+   - `SRC`: The directory you want to back up
    - `DEST_BASE`: The base directory where backups will be stored
-   - `LOG_FILE`: Path to the log file
    - `RETENTION_DAILY`, `RETENTION_WEEKLY`, `RETENTION_MONTHLY`: Retention periods for each backup type
-   - `EMAIL_SCRIPT`: Path to the send_notification.sh script (should be "./send_notification.sh" if in the same directory)
    - `EXCLUDE`: Array of files and directories to exclude from the backup
    - `ENABLE_NOTIFICATIONS`: Set to `true` to enable email notifications, or `false` to disable them completely
    - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
    - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
    - `REQUIRED_DISK_SPACE`: Required disk space for checking in KB (default: 1GB)
    - `BACKUP_FROM_REMOTE_SITE`: Set to true to enable remote backups, or false for local backups
-   - `REMOTE_IP, REMOTE_PORT, REMOTE_USER, REMOTE_PATH`: Details for remote backup (only needed if BACKUP_FROM_REMOTE_SITE is set to true)
-   - `SSH_METHOD`: Set to "key" for key-based SSH authentication or "password" for password-based authentication
-   - `SSH_KEY`: Path to your SSH private key (only required if SSH_METHOD is set to "key")
-   - `REMOTE_PASSWORD`: SSH password (only required if SSH_METHOD is set to "password")
 
-2. Configure exclusions in the `EXCLUDE` array:
+3. **Configure Exclusions in the `EXCLUDE` Array**:
    ```bash
    EXCLUDE=(
        "cache"                         # Exclude a directory named 'cache' anywhere in the backup
@@ -86,8 +126,6 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
        "node_modules"                  # Exclude 'node_modules' directories anywhere in the backup
    )
    ```
-
-3. If email notifications are enabled, edit the `send_notification.sh` file to configure email settings.
 
 ## Usage
 
@@ -105,11 +143,11 @@ For automated backups, add the script to root's crontab. For example, to run it 
 
 ## Logging
 
-The script logs its operations to both the console and a log file (default: `/var/log/mysite-backup.log`). Check this file for detailed information about each backup run.
+The script logs its operations to both the console and a log file (configured in the `.env` file). Check this file for detailed information about each backup run.
 
 ## Email Notifications
 
-[The email notifications section remains the same as in your original README]
+Sensitive email settings, including the email method (SMTP or Postmark), are stored in the `.env` file. The `send_notification.sh` script will automatically use these configurations to send emails via the specified method.
 
 ## Directory Structure
 
@@ -117,6 +155,7 @@ After running the script, your backup directory structure will look like this:
 
 ```
 website-rsync-backup/
+├── .env
 ├── backup_script.sh
 ├── send_notification.sh
 ├── backups/
@@ -134,8 +173,8 @@ The script includes error checking for critical operations:
 
 ## Security Considerations
 
-- The `send_notification.sh` script contains sensitive email credentials. Ensure it has restricted permissions (`chmod 700 send_notification.sh`).
-- Consider using environment variables or a separate configuration file for sensitive information.
+- The `.env` file contains sensitive information like email credentials and SSH keys. Ensure it has restricted permissions (`chmod 600 .env`) and is not included in version control.
+- Use key-based SSH authentication wherever possible for better security.
 
 ## License
 
@@ -143,4 +182,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Author
 
-LOVING OPEN SOURCE. Dan Duran @ GetCyber! - [GitHub Profile](https://github.com/Dan-Duran)
+LONG LIVE OPEN SOURCE! Dan Duran @ [GetCyber.me](https://GetCyber.me)
