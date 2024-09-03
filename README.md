@@ -1,6 +1,6 @@
 # Website Rsync Backup Automation Script
 
-This repository contains a Bash script for automating backups using rsync for your website. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently.
+This repository contains an enhanced Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently.
 
 ## Features
 
@@ -9,12 +9,16 @@ This repository contains a Bash script for automating backups using rsync for yo
 - Monthly backups (on the 1st of each month) with custom retention (default: 24 months)
 - Automatic rotation to remove old backups
 - Uses rsync for efficient, incremental backups
+- Comprehensive error handling and logging
+- Disk space check before backup
+- Root privilege check
 
 ## Prerequisites
 
 - Bash shell
 - rsync
 - cron (for scheduling)
+- Root access (sudo)
 
 ## Installation
 
@@ -33,26 +37,30 @@ This repository contains a Bash script for automating backups using rsync for yo
 
 ## Configuration
 
-Edit the `backup_script.sh` file to set your source and destination directories:
+Edit the `backup_script.sh` file to set your configuration:
 
 - `SRC`: The directory you want to backup
 - `DEST_BASE`: The base directory where backups will be stored
-
-You can also adjust the rotation limits for each backup type (daily, weekly, monthly) by modifying the respective values in the `rotate` function calls.
+- `LOG_FILE`: Path to the log file
+- `RETENTION_DAILY`, `RETENTION_WEEKLY`, `RETENTION_MONTHLY`: Retention periods for each backup type
 
 ## Usage
 
-You can run the script manually:
+Run the script as root:
 
 ```
-./backup_script.sh
+sudo ./backup_script.sh
 ```
 
-For automated backups, add the script to your crontab. For example, to run it daily at 2 AM:
+For automated backups, add the script to root's crontab. For example, to run it daily at 2 AM:
 
 ```
 0 2 * * * /path/to/backup_script.sh
 ```
+
+## Logging
+
+The script logs its operations to both the console and a log file (default: `/var/log/mysite-backup.log`). Check this file for detailed information about each backup run.
 
 ## Directory Structure
 
@@ -66,13 +74,20 @@ mysite-backups/
 └── monthly/
 ```
 
+## Error Handling
+
+The script includes error checking for critical operations:
+- Ensures it's run with root privileges
+- Checks for sufficient disk space before starting the backup
+- Logs errors and exits if critical operations fail
+
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome. Feel free to check [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
+Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
 
 ## Author
 
