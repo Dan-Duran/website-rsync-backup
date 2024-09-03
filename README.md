@@ -26,7 +26,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 - **Disk Space Check**: Ensures sufficient disk space is available before starting backups (default 1GB).
 - **Root Privilege Check**: Ensures the script is run with the necessary permissions.
 - **Configurable Email Notifications**: Supports notifications via SMTP or Postmark, with options to enable/disable based on success or failure.
-- **Remote Backup Capability**: Option to back up from a remote source over SSH, with both key and password authentication.
+- **Remote Backup Capability**: Option to back up from a remote source over SSH using key-based authentication.
 - **Centralized Configuration**: All configurations are managed via a single `.env` file, making it easy to manage and update settings.
 
 ## Prerequisites
@@ -37,7 +37,6 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 - Root access (sudo)
 - mutt (only if using SMTP for email notifications)
 - curl (for Postmark API calls)
-- sshpass (only if using password-based SSH authentication for remote backups)
 
 ## Installation
 
@@ -57,10 +56,6 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    ```
    sudo apt-get install mutt
    ```
-5. (Optional) Install sshpass for password-based SSH authentication:
-   ```
-   sudo apt-get install sshpass
-   ```
 
 ## Configuration
 
@@ -77,7 +72,6 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    REMOTE_PATH=/var/www/html/
    SSH_METHOD=key
    SSH_KEY=/path/to/private/key
-   REMOTE_PASSWORD=password
 
    # Log file
    LOG_FILE=/var/log/mysite-backup.log
@@ -108,7 +102,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    chmod 600 .env
    ```
 
-2. **Edit the `backup_script.sh` File**:
+2. **Edit the `.env` File**:
    Most of the configurations for the backup process are handled in the `.env` file. You need to adjust the following in the `.env` file as needed:
 
    - `SITE`: Name of your site (used in notifications)
@@ -182,7 +176,7 @@ The script includes robust error checking for critical operations:
 ## Security Considerations
 
 - The `.env` file contains sensitive information like email credentials and SSH keys. Ensure it has restricted permissions (`chmod 600 .env`) and is not included in version control.
-- Use key-based SSH authentication wherever possible for better security.
+- Use key-based SSH authentication for remote backups for better security.
 
 ## License
 
