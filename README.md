@@ -1,6 +1,6 @@
 # Website Rsync Backup Automation Script
 
-This repository contains an enhanced Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently, and includes configurable email notifications for backup successes and failures.
+This repository contains a powerful and feature-rich Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently. It includes configurable email notifications for backup successes and failures, and offers advanced options for remote backups, logging, and error handling.
 
 ## HELP! (CONTRIBUTIONS)
 
@@ -8,18 +8,16 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
 
 ## Features
 
-- Daily backups with custom retention (default: 90 days)
-- Weekly backups (on Sundays) with custom retention (default: 52 weeks)
-- Monthly backups (on the 1st of each month) with custom retention (default: 24 months)
-- Automatic rotation to remove old backups
-- Uses rsync for efficient, incremental backups
-- Customizable file and directory exclusions
-- Comprehensive error handling and logging
-- Disk space check before backup (default 1GB)
-- Root privilege check
-- Configurable email notifications for backup successes and failures via SMTP or Postmark
-- Option to completely disable email notifications
-- Option to back up from a remote source over SSH
+- **Daily, Weekly, and Monthly Backups**: Custom retention periods for each (default: 90 days, 52 weeks, 24 months).
+- **Automatic Rotation**: Automatically removes old backups to manage storage efficiently.
+- **Rsync-Based**: Utilizes rsync for efficient, incremental backups, minimizing bandwidth and storage usage.
+- **Customizable Exclusions**: Easily exclude specific files or directories from backups.
+- **Comprehensive Error Handling and Logging**: Logs detailed information and handles errors gracefully.
+- **Disk Space Check**: Ensures sufficient disk space is available before starting backups (default 1GB).
+- **Root Privilege Check**: Ensures the script is run with the necessary permissions.
+- **Configurable Email Notifications**: Supports notifications via SMTP or Postmark, with options to enable/disable based on success or failure.
+- **Remote Backup Capability**: Option to back up from a remote source over SSH, with both key and password authentication.
+- **Centralized Configuration**: All configurations are managed via a single `.env` file, making it easy to manage and update settings.
 
 ## Prerequisites
 
@@ -101,7 +99,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    ```
 
 2. **Edit the `backup_script.sh` File**:
-   Most of the configurations for the backup process are handled in the script itself. You need to adjust the following in the `backup_script.sh`:
+   Most of the configurations for the backup process are handled in the `.env` file. You need to adjust the following in the `.env` file as needed:
 
    - `SITE`: Name of your site (used in notifications)
    - `SRC`: The directory you want to back up
@@ -112,7 +110,7 @@ Feel free to contribute to this repo! All adjustments and comments are welcomed.
    - `NOTIFY_ON_FAILURE`: Set to `true` to receive emails on backup failures (if notifications are enabled)
    - `NOTIFY_ON_SUCCESS`: Set to `true` to receive emails on successful backups (if notifications are enabled)
    - `REQUIRED_DISK_SPACE`: Required disk space for checking in KB (default: 1GB)
-   - `BACKUP_FROM_REMOTE_SITE`: Set to true to enable remote backups, or false for local backups
+   - `BACKUP_FROM_REMOTE_SITE`: Set to `true` to enable remote backups, or `false` for local backups
 
 3. **Configure Exclusions in the `EXCLUDE` Array**:
    ```bash
@@ -166,10 +164,10 @@ website-rsync-backup/
 
 ## Error Handling
 
-The script includes error checking for critical operations:
-- Ensures it's run with root privileges
-- Checks for sufficient disk space before starting the backup
-- Logs errors and sends email notifications (if configured) if critical operations fail
+The script includes robust error checking for critical operations:
+- Ensures it's run with root privileges.
+- Checks for sufficient disk space before starting the backup.
+- Logs errors and sends email notifications (if configured) if critical operations fail.
 
 ## Security Considerations
 
