@@ -10,7 +10,7 @@ RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/send_notification.sh"
 
 # Email notification settings
-NOTIFY_ON_FAILURE=false
+NOTIFY_ON_FAILURE=true
 NOTIFY_ON_SUCCESS=true
 
 # Ensure the script is run as root
