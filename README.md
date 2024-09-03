@@ -2,6 +2,10 @@
 
 This repository contains an enhanced Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently, and includes configurable email notifications for backup successes and failures.
 
+## HELP!
+
+Feel free to contribute to this repo! All adjustments and comments are welcomed. Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
+
 ## Features
 
 - Daily backups with custom retention (default: 90 days)
@@ -125,10 +129,6 @@ The script includes error checking for critical operations:
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## Contributing
-
-Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
-
 ## Author
 
-Dan Duran @ GetCyber! - [GitHub Profile](https://github.com/Dan-Duran)
+LOVING OPEN SOURCE. Dan Duran @ GetCyber! - [GitHub Profile](https://github.com/Dan-Duran)
