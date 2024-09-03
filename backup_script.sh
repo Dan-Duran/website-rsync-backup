@@ -31,7 +31,6 @@ send_notification() {
         local subject="$1"
         local body="$2"
         local is_failure="$3"
-
         if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
            ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
             if [ -x "$EMAIL_SCRIPT" ]; then
@@ -48,7 +47,13 @@ send_notification() {
 # Function to check available disk space
 check_disk_space() {
     local required_space=$1
+    mkdir -p "$DEST_BASE"  # Ensure the destination directory exists
     local available_space=$(df -k "$DEST_BASE" | awk 'NR==2 {print $4}')
+    if [ -z "$available_space" ]; then
+        log "ERROR: Unable to determine available disk space"
+        send_notification "Backup Failed: Disk Space Check Error" "Unable to determine available disk space. Please check the server." true
+        exit 1
+    fi
     if [ "$available_space" -lt "$required_space" ]; then
         log "ERROR: Not enough disk space. Required: ${required_space}KB, Available: ${available_space}KB"
         send_notification "Backup Failed: Insufficient Disk Space" "Backup process failed due to insufficient disk space. Please check the server." true
@@ -113,14 +118,16 @@ log "Backup process completed"
 send_notification "Backup Completed Successfully" "The backup process has completed successfully. Please check the attached log file for details." false
 
 # Usage with cron:
-# 0 2 * * * /home/admin/mysite-backups/backup_script.sh
+# 0 2 * * * /home/dan/website-rsync-backup/backup_script.sh
 
 # Directory structure:
-# mysite-backups/
+# website-rsync-backup/
 #   - backup_script.sh
-#   - daily/
-#   - weekly/
-#   - monthly/
+#   - send_notification.sh
+#   - backups/
+#     - daily/
+#     - weekly/
+#     - monthly/
 
 # Make script executable:
 # chmod +x backup_script.sh
