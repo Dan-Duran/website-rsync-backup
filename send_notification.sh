@@ -21,34 +21,18 @@ TO_EMAIL="admin@example.com"
 send_email_smtp() {
     local subject="$1"
     local body="$2"
-    local attachment="$3"
-    local priority="$4"
-
+    local priority="$3"
     local priority_flag=""
     if [ "$priority" = "high" ]; then
         priority_flag="-e 'my_hdr X-Priority: 1'"
     fi
-
-    if [ -n "$attachment" ] && [ -f "$attachment" ]; then
-        mutt -s "$subject" -e "set content_type=text/html" \
-             -e "set from=$FROM_EMAIL" \
-             -e "set smtp_url=smtp://$SMTP_USER:$SMTP_PASS@$SMTP_SERVER:$SMTP_PORT" \
-             -e "set ssl_starttls=yes" \
-             -e "set ssl_force_tls=yes" \
-             $priority_flag \
-             -a "$attachment" -- "$TO_EMAIL" <<EOF
-$body
-EOF
-    else
-        echo "$body" | mutt -s "$subject" -e "set content_type=text/html" \
-             -e "set from=$FROM_EMAIL" \
-             -e "set smtp_url=smtp://$SMTP_USER:$SMTP_PASS@$SMTP_SERVER:$SMTP_PORT" \
-             -e "set ssl_starttls=yes" \
-             -e "set ssl_force_tls=yes" \
-             $priority_flag \
-             -- "$TO_EMAIL"
-    fi
-
+    echo "$body" | mutt -s "$subject" -e "set content_type=text/html" \
+         -e "set from=$FROM_EMAIL" \
+         -e "set smtp_url=smtp://$SMTP_USER:$SMTP_PASS@$SMTP_SERVER:$SMTP_PORT" \
+         -e "set ssl_starttls=yes" \
+         -e "set ssl_force_tls=yes" \
+         $priority_flag \
+         -- "$TO_EMAIL"
     if [ $? -eq 0 ]; then
         echo "Email sent successfully via SMTP"
     else
@@ -60,12 +44,9 @@ EOF
 send_email_postmark() {
     local subject="$1"
     local body="$2"
-    local attachment="$3"
-    local priority="$4"
-
+    local priority="$3"
     # Convert text body to HTML
     local html_body=$(echo "$body" | sed 's/$/<br>/')
-
     # Prepare JSON payload
     local json_payload=$(cat <<EOF
 {
@@ -77,14 +58,12 @@ send_email_postmark() {
 }
 EOF
 )
-
     # Send request to Postmark API
     response=$(curl -s -X POST "$POSTMARK_API_URL" \
       -H "Accept: application/json" \
       -H "Content-Type: application/json" \
       -H "X-Postmark-Server-Token: $POSTMARK_TOKEN" \
       -d "$json_payload")
-
     if echo "$response" | grep -q '"ErrorCode":0'; then
         echo "Email sent successfully via Postmark"
     else
@@ -93,27 +72,29 @@ EOF
 }
 
 # Main execution
-if [ $# -lt 3 ]; then
-    echo "Usage: $0 <subject> <body> <is_failure> [attachment]"
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <is_failure> <SITE>"
     exit 1
 fi
 
-subject="$1"
-body="$2"
-is_failure="$3"
-attachment="$4"
+is_failure="$1"
+SITE="$2"
 
-# Set email priority based on failure status
-priority="normal"
 if [ "$is_failure" = "true" ]; then
+    subject="Backup for $SITE failed"
+    body="The backup process for $SITE failed. Please check the log file for details."
     priority="high"
+else
+    subject="Backup for $SITE successful"
+    body="The backup process for $SITE has completed successfully. Please check the log file for details."
+    priority="normal"
 fi
 
 # Send email based on configured method
 if [ "$EMAIL_METHOD" = "smtp" ]; then
-    send_email_smtp "$subject" "$body" "$attachment" "$priority"
+    send_email_smtp "$subject" "$body" "$priority"
 elif [ "$EMAIL_METHOD" = "postmark" ]; then
-    send_email_postmark "$subject" "$body" "$attachment" "$priority"
+    send_email_postmark "$subject" "$body" "$priority"
 else
     echo "Invalid EMAIL_METHOD. Please set it to either 'smtp' or 'postmark'."
     exit 1
