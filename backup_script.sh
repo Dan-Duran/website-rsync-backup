@@ -2,7 +2,7 @@
 
 # Configuration
 SITE="My Site"
-SRC="/var/www/html/" # path to source
+SRC="/var/www/html/" # path to source (local)
 DEST_BASE="/home/admin/website-rsync-backup/backups" # path to destination
 LOG_FILE="/var/log/mysite-backup.log" # path to log directory
 RETENTION_DAILY=90
@@ -10,6 +10,16 @@ RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
 EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
 REQUIRED_DISK_SPACE=1048576 # Required disk space in KB (default: 1GB)
+
+# Remote backup configuration
+BACKUP_FROM_REMOTE_SITE=false  # Set to true for remote backup
+REMOTE_IP="192.168.1.100"       # IP address of the remote server
+REMOTE_PORT=22                  # SSH port, default is 22
+REMOTE_USER="username"          # SSH username
+REMOTE_PATH="/var/www/html/"    # Remote source path (when backing up from a remote site)
+SSH_METHOD="key"                # Options: "password" or "key"
+SSH_KEY="/path/to/private/key"  # Path to private SSH key (if using key-based auth)
+REMOTE_PASSWORD="password"      # SSH password (if using password-based auth)
 
 # Files or directories to exclude
 EXCLUDE=(
@@ -72,6 +82,19 @@ check_disk_space() {
     fi
 }
 
+# Function to construct the rsync command based on local or remote source
+prepare_rsync_command() {
+    if [ "$BACKUP_FROM_REMOTE_SITE" = true ]; then
+        if [ "$SSH_METHOD" = "key" ]; then
+            RSYNC_CMD="rsync -avz -e 'ssh -i $SSH_KEY -p $REMOTE_PORT' $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+        else
+            RSYNC_CMD="rsync -avz -e 'sshpass -p $REMOTE_PASSWORD ssh -p $REMOTE_PORT' $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+        fi
+    else
+        RSYNC_CMD="rsync -avz --delete $exclude_opts $SRC $DEST"
+    fi
+}
+
 # Backup function
 backup() {
     local DEST="$1/$DATE"
@@ -84,8 +107,10 @@ backup() {
     for item in "${EXCLUDE[@]}"; do
         exclude_opts+="--exclude=$item "
     done
+
+    prepare_rsync_command  # Construct the rsync command
     
-    if rsync -avz --delete $exclude_opts "$SRC" "$DEST"; then
+    if $RSYNC_CMD; then
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
