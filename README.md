@@ -6,6 +6,16 @@ This repository contains a powerful and feature-rich Bash script for automating 
 
 Feel free to contribute to this repo! All adjustments and comments are welcomed. Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Dan-Duran/website-rsync-backup/issues) if you want to contribute.
 
+### Development Path
+
+- Multi-site support with task scheduling to balance server load
+- Backup email and notification enhancements (Slack, Microsoft Teams, Discord, SendGrid, etc.)
+- Database backup integration (MySQL, PostgreSQL, etc.)
+- Incremental and differential backups for saving storage space
+- Backup encryption for security
+- AWS storage support
+- Backup verification to verify the integrity of backups
+
 ## Features
 
 - **Daily, Weekly, and Monthly Backups**: Custom retention periods for each (default: 90 days, 52 weeks, 24 months).
