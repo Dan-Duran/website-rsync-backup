@@ -1,25 +1,24 @@
 #!/bin/bash
 
+# Load environment variables from .env file
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+else
+    echo ".env file not found. Please create a .env file with the necessary configuration."
+    exit 1
+fi
+
 # Configuration
 SITE="My Site"
 SRC="/var/www/html/" # path to source (local)
 DEST_BASE="/home/admin/website-rsync-backup/backups" # path to destination
-LOG_FILE="/var/log/mysite-backup.log" # path to log directory
 RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
-EMAIL_SCRIPT="/path/to/website-rsync-backup/send_notification.sh" # path to notification script
 REQUIRED_DISK_SPACE=1048576 # Required disk space in KB (default: 1GB)
 
 # Remote backup configuration
 BACKUP_FROM_REMOTE_SITE=false  # Set to true for remote backup
-REMOTE_IP="192.168.1.100"       # IP address of the remote server
-REMOTE_PORT=22                  # SSH port, default is 22
-REMOTE_USER="username"          # SSH username
-REMOTE_PATH="/var/www/html/"    # Remote source path (when backing up from a remote site)
-SSH_METHOD="key"                # Options: "password" or "key"
-SSH_KEY="/path/to/private/key"  # Path to private SSH key (if using key-based auth)
-REMOTE_PASSWORD="password"      # SSH password (if using password-based auth)
 
 # Files or directories to exclude
 EXCLUDE=(
