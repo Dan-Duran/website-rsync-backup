@@ -7,6 +7,11 @@ LOG_FILE="/var/log/mysite-backup.log"
 RETENTION_DAILY=90
 RETENTION_WEEKLY=52
 RETENTION_MONTHLY=24
+EMAIL_SCRIPT="/path/to/send_notification.sh"
+
+# Email notification settings
+NOTIFY_ON_FAILURE=false
+NOTIFY_ON_SUCCESS=true
 
 # Ensure the script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -19,12 +24,29 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
+# Function to send email notification
+send_notification() {
+    local subject="$1"
+    local body="$2"
+    local is_failure="$3"
+
+    if ([ "$is_failure" = true ] && [ "$NOTIFY_ON_FAILURE" = true ]) || \
+       ([ "$is_failure" = false ] && [ "$NOTIFY_ON_SUCCESS" = true ]); then
+        if [ -x "$EMAIL_SCRIPT" ]; then
+            "$EMAIL_SCRIPT" "$subject" "$body" "$is_failure" "$LOG_FILE"
+        else
+            log "WARNING: Email script not found or not executable"
+        fi
+    fi
+}
+
 # Function to check available disk space
 check_disk_space() {
     local required_space=$1
     local available_space=$(df -k "$DEST_BASE" | awk 'NR==2 {print $4}')
     if [ "$available_space" -lt "$required_space" ]; then
         log "ERROR: Not enough disk space. Required: ${required_space}KB, Available: ${available_space}KB"
+        send_notification "Backup Failed: Insufficient Disk Space" "Backup process failed due to insufficient disk space. Please check the server." true
         exit 1
     fi
 }
@@ -39,6 +61,7 @@ backup() {
         log "$TYPE backup completed successfully"
     else
         log "ERROR: $TYPE backup failed"
+        send_notification "Backup Failed: $TYPE Backup Error" "The $TYPE backup process failed. Please check the server and the log file for more details." true
         exit 1
     fi
 }
@@ -54,6 +77,7 @@ rotate() {
         log "$TYPE backup rotation completed"
     else
         log "WARNING: $TYPE backup rotation failed"
+        send_notification "Backup Warning: $TYPE Rotation Failed" "The rotation process for $TYPE backups failed. Please check the server and the log file for more details." true
     fi
 }
 
@@ -81,6 +105,7 @@ if [ "$(date +%d)" -eq 01 ]; then
 fi
 
 log "Backup process completed"
+send_notification "Backup Completed Successfully" "The backup process has completed successfully. Please check the attached log file for details." false
 
 # Usage with cron:
 # 0 2 * * * /home/admin/mysite-backups/backup_script.sh
