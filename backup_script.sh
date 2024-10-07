@@ -82,18 +82,28 @@ check_disk_space() {
 # Function to prepare and diagnose the rsync command
 prepare_rsync_command() {
     log "Preparing rsync command..."
+    
+    # Prepare include options only if INCLUDE array is not empty
+    local include_opts=""
+    if [ ${#INCLUDE[@]} -gt 0 ]; then
+        for item in "${INCLUDE[@]}"; do
+            include_opts+="--include=$item "
+        done
+    fi
 
-    # Prepare exclude options
+    # Prepare exclude options only if EXCLUDE array is not empty
     local exclude_opts=""
-    for item in "${EXCLUDE[@]}"; do
-        exclude_opts+="--exclude=$item "
-    done
+    if [ ${#EXCLUDE[@]} -gt 0 ]; then
+        for item in "${EXCLUDE[@]}"; do
+            exclude_opts+="--exclude=$item "
+        done
+    fi
 
     if [ "$BACKUP_FROM_REMOTE_SITE" = true ]; then
         if [ "$SSH_METHOD" = "key" ]; then
-            RSYNC_CMD="rsync -avz $exclude_opts --delete -e \"ssh -i $SSH_KEY -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+            RSYNC_CMD="rsync -avz $include_opts $exclude_opts --delete -e \"ssh -i $SSH_KEY -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
         else
-            RSYNC_CMD="sshpass -p \"$REMOTE_PASSWORD\" rsync -avz $exclude_opts --delete -e \"ssh -o StrictHostKeyChecking=no -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
+            RSYNC_CMD="sshpass -p \"$REMOTE_PASSWORD\" rsync -avz $include_opts $exclude_opts --delete -e \"ssh -o StrictHostKeyChecking=no -p $REMOTE_PORT\" $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH $DEST"
         fi
 
         # Test SSH connection
@@ -117,7 +127,7 @@ prepare_rsync_command() {
         fi
 
     else
-        RSYNC_CMD="rsync -avz $exclude_opts --delete $SRC $DEST"
+        RSYNC_CMD="rsync -avz $include_opts $exclude_opts --delete $SRC $DEST"
     fi
 
     log "Rsync command prepared: $RSYNC_CMD"
