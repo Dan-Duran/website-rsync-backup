@@ -10,6 +10,13 @@ RETENTION_MONTHLY=24
 REQUIRED_DISK_SPACE=1048576 # Required disk space in KB (default: 1GB)
 LOG_FILE="$BASE_DIR/mysite-backup.log" # by default in /website-rsync-backup/mysite-backup.log
 
+
+# Include Patterns (for specific files or directories to include from anywhere)
+INCLUDE=(
+    "/var/lib/mysql/dumps/domain.sql"
+    "/home/user/somefile.txt"
+)
+
 # Exclude Patterns
 EXCLUDE=(
     "cache"
