@@ -2,6 +2,10 @@
 
 This repository contains a powerful and feature-rich Bash script for automating website backups using rsync. The script performs daily, weekly, and monthly backups with rotation to manage storage efficiently. It includes configurable email notifications for backup successes and failures, and offers advanced options for remote backups, logging, and error handling.
 
+- **👉 Checkout some more awesome tools at [GetCyber](https://getcyber.me/tools)**
+- **👉 Subscribe to my YouTube Channel [GetCyber - YouTube](https://youtube.com/getCyber)**
+- **👉 Discord Server [GetCyber - Discord](https://discord.gg/YUf3VpDeNH)**
+
 ## Table of Contents
 - [Features](#features)
 - [Prerequisites](#prerequisites)
